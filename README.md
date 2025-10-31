@@ -1,70 +1,127 @@
-# Getting Started with Create React App
+# Course Player - پخش‌کننده دوره آموزشی
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+An Electron-based video course player with progress tracking and folder import functionality.
+
+## Features
+
+- 📁 **Folder Import**: Select any folder containing video files
+- 🎥 **Video Playback**: Play videos with built-in HTML5 player
+- 📊 **Progress Tracking**: Automatically tracks your progress for each video
+- 💾 **Persistent Storage**: Remembers your last opened folder and progress
+- 🎨 **Beautiful UI**: Modern, responsive interface with Persian language support
+- 📝 **Video List**: Easy navigation between videos in your course
+
+## Supported Video Formats
+
+- MP4
+- MKV
+- AVI
+- MOV
+- WebM
+- FLV
+- WMV
+- M4V
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── VideoPlayer/
+│   │   ├── VideoPlayer.tsx
+│   │   └── index.ts
+│   ├── VideoList/
+│   │   ├── VideoList.tsx
+│   │   └── index.ts
+│   └── FolderImport/
+│       ├── FolderImport.tsx
+│       └── index.ts
+├── types/
+│   └── electron.d.ts
+├── App.tsx
+├── index.tsx
+└── index.css
+```
 
 ## Available Scripts
 
-In the project directory, you can run:
+### Development Mode
 
-### `npm start`
+```bash
+npm run dev
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Runs the app in development mode with:
+- React development server on http://localhost:3000
+- Electron window with hot reload
+- TypeScript compilation in watch mode
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Build for Production
 
-### `npm test`
+```bash
+npm run build
+npm run electron-build
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Builds the React app and runs it in Electron production mode.
 
-### `npm run build`
+### Individual Scripts
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- `npm start` - Start React development server only
+- `npm run react-start` - Start React without opening browser
+- `npm run electron-dev` - Compile TypeScript for Electron in watch mode
+- `npm run electron-start` - Start Electron window
+- `npm test` - Run tests
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## How to Use
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. **Start the Application**
+   ```bash
+   npm run dev
+   ```
 
-### `npm run eject`
+2. **Import Videos**
+   - Click the "📂 انتخاب پوشه" (Select Folder) button
+   - Choose a folder containing your video files
+   - All supported video files will be automatically detected
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+3. **Watch Videos**
+   - Click on any video in the sidebar to play it
+   - Your progress is automatically saved
+   - The app remembers your last opened folder
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+4. **Change Folder**
+   - Click the "📂 پوشه جدید" (New Folder) button at the bottom of the sidebar
+   - Select a different folder with videos
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Technologies Used
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- **React 19** with TypeScript
+- **Electron 39** for desktop application
+- **Tailwind CSS** for styling
+- **HTML5 Video** for playback
+- **Local Storage** for progress persistence
 
-## Learn More
+## Development
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+This project was bootstrapped with Create React App and extended with Electron support.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Requirements
 
-### Code Splitting
+- Node.js 16+
+- npm or yarn
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Installation
 
-### Analyzing the Bundle Size
+```bash
+npm install
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### TypeScript Configuration
 
-### Making a Progressive Web App
+- `tsconfig.json` - React app TypeScript configuration
+- `tsconfig.electron.json` - Electron main process TypeScript configuration
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## License
 
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Private project for educational purposes.
