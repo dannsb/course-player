@@ -1,7 +1,10 @@
 {
   "name": "course-player",
   "version": "0.1.0",
+  "description": "A video course player application for local video files",
+  "author": "daniyal",
   "private": true,
+  "main": "dist-electron/main.js",
   "dependencies": {
     "@radix-ui/react-context-menu": "^2.2.16",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -22,7 +25,7 @@
     "clsx": "^2.1.1",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
-    "electron": "^39.0.0",
+    "electron-squirrel-startup": "^1.0.1",
     "lucide-react": "^0.548.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -41,7 +44,9 @@
     "react-start": "cross-env BROWSER=none npm start",
     "electron-dev": "tsc -p tsconfig.electron.json --watch",
     "electron-start": "wait-on tcp:3000 && wait-on dist-electron/main.js && cross-env NODE_ENV=development electron ./dist-electron/main.js",
-    "electron-build": "tsc -p tsconfig.electron.json && cross-env NODE_ENV=production electron ./dist-electron/main.js"
+    "electron-build": "tsc -p tsconfig.electron.json && cross-env NODE_ENV=production electron ./dist-electron/main.js",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "eslintConfig": {
     "extends": [
@@ -62,13 +67,59 @@
     ]
   },
   "devDependencies": {
+    "@electron-forge/cli": "^7.10.2",
+    "@electron-forge/maker-deb": "^7.10.2",
+    "@electron-forge/maker-rpm": "^7.10.2",
+    "@electron-forge/maker-squirrel": "^7.10.2",
+    "@electron-forge/maker-zip": "^7.10.2",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.10.2",
+    "@electron-forge/plugin-fuses": "^7.10.2",
+    "@electron-forge/plugin-webpack": "^7.10.2",
+    "@electron/fuses": "^1.8.0",
     "@types/node": "^24.9.1",
     "autoprefixer": "^10.4.21",
+    "electron": "^39.0.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.18",
     "tailwindcss-animate": "^1.0.7",
     "ts-node": "^10.9.2",
     "typescript": "^4.9.5",
     "wait-on": "^9.0.1"
+  },
+  "config": {
+    "forge": {
+      "packagerConfig": {
+        "asar": true,
+        "icon": "./public/logo512.png",
+        "extraResource": [
+          "./build"
+        ]
+      },
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "course_player",
+            "authors": "daniyal",
+            "description": "A video course player application for local video files"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin",
+            "linux"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        }
+      ]
+    }
   }
 }

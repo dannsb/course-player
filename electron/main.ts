@@ -23,7 +23,7 @@ function createWindow() {
 }
 
 // IPC handler for renaming video files
-ipcMain.handle("rename-video", async (event, { oldPath, newTitle }) => {
+ipcMain.handle("rename-video", async (_event: any, { oldPath, newTitle }: { oldPath: string; newTitle: string }) => {
   try {
     const dir = path.dirname(oldPath);
     const ext = path.extname(oldPath);
@@ -79,7 +79,7 @@ ipcMain.handle("select-folder", async () => {
     });    
 
     // Sort video files naturally (alphanumeric)
-    videoFiles.sort((a, b) => { 
+    videoFiles.sort((a: string, b: string) => { 
       return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
     });
 

@@ -3,15 +3,9 @@ import VideoPlayer, { VideoPlayerRef } from "./components/video-player/video-pla
 import VideoList from "./components/video-list/video-list";
 import FolderImport from "./components/folder-import/folder-import";
 import LoadingOverlay from "./components/ui/loading-overlay";
+import DialogNotification from "./components/ui/dialog-notification";
 import { Button } from "./components/ui/button";
 import { Separator } from "./components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "./components/ui/dialog";
 import { FolderIcon } from "lucide-react";
 import { useDialog } from "./hooks/useDialog";
 import { useVideoProgress } from "./hooks/useVideoProgress";
@@ -46,7 +40,15 @@ function App() {
   // Show folder import screen if no videos
   if (videos.length === 0) {
     return (
-      <FolderImport onFolderSelect={handleSelectFolder} hasVideos={false} />
+      <>
+        <FolderImport onFolderSelect={handleSelectFolder} hasVideos={false} />
+        <DialogNotification
+          isOpen={isOpen}
+          onOpenChange={setIsOpen}
+          title={content.title}
+          message={content.message}
+        />
+      </>
     );
   }
 
@@ -97,14 +99,12 @@ function App() {
       )}
 
       {/* Dialog for notifications */}
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{content.title}</DialogTitle>
-            <DialogDescription>{content.message}</DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <DialogNotification
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
+        title={content.title}
+        message={content.message}
+      />
     </>
   );
 }

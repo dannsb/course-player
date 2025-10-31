@@ -21,7 +21,7 @@ function createWindow() {
     }
 }
 // IPC handler for renaming video files
-ipcMain.handle("rename-video", async (event, { oldPath, newTitle }) => {
+ipcMain.handle("rename-video", async (_event, { oldPath, newTitle }) => {
     try {
         const dir = path.dirname(oldPath);
         const ext = path.extname(oldPath);
