@@ -1,8 +1,9 @@
 {
   "name": "course-player",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A video course player application for local video files",
   "author": "dannsb",
+  "homepage": ".",
   "private": true,
   "main": "dist-electron/main.js",
   "dependencies": {
