@@ -1,4 +1,4 @@
-# Course Player - پخش‌کننده دوره آموزشی
+# Course Player
 
 An Electron-based video course player with progress tracking and folder import functionality.
 
