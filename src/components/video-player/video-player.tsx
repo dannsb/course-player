@@ -1,26 +1,46 @@
-import { FC, useRef } from "react";
+import { useImperativeHandle, forwardRef } from "react";
 import { IVideoPlayer } from "./video-player.type";
+import "video.js/dist/video-js.css";
+import { useVideoPlayer } from "./useVideoPlayer";
+import { isPersian } from "../../utils/persian-text";
 
-const VideoPlayer: FC<IVideoPlayer> = ({
+export interface VideoPlayerRef {
+  seekTo: (time: number) => void;
+  pause: () => void;
+}
+
+const VideoPlayer = forwardRef<VideoPlayerRef, IVideoPlayer>(({
   videoPath,
   title,
   onTimeUpdate,
-}) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  
+  initialProgress,
+}, ref) => {
+  const { videoRef, playerRef } = useVideoPlayer({ videoPath, onTimeUpdate, initialProgress });
+
+  useImperativeHandle(ref, () => ({
+    seekTo: (time: number) => {
+      if (playerRef.current && !playerRef.current.isDisposed()) {
+        playerRef.current.currentTime(time);
+      }
+    },
+    pause: () => {
+      if (playerRef.current && !playerRef.current.isDisposed()) {
+        playerRef.current.pause();
+      }
+    },
+  }));
+
   return (
     <div className="flex-1 bg-background flex flex-col items-center justify-center">
-      <video
-        ref={videoRef}
-        src={videoPath}
-        controls
-        onTimeUpdate={onTimeUpdate}
-        className="w-4/5 rounded-xl"
-      />
-      <h3 className="text-white mt-3 text-xl">{title}</h3>
+      <div data-vjs-player className="w-4/5">
+        <div ref={videoRef} className="rounded-xl overflow-hidden" />
+      </div>
+      <h3 className="text-white mt-3 text-xl" dir={isPersian(title) ? "rtl" : "ltr"}>{title}</h3>
     </div>
   );
-};
+});
+
+VideoPlayer.displayName = "VideoPlayer";
 
 export default VideoPlayer;
 

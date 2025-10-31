@@ -9,17 +9,9 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "../../ui/context-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../../ui/dialog";
-import { Input } from "../../ui/input";
-import { Button } from "../../ui/button";
 import { CheckCircle, PlayCircle, Pencil } from "lucide-react";
+import RenameDialog from "./rename-dialog";
+import { isPersian } from "../../../utils/persian-text";
 
 const VideoCard: FC<IVideoCard> = ({
   video,
@@ -89,7 +81,9 @@ const VideoCard: FC<IVideoCard> = ({
               
               <div className="p-3 space-y-4">
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <p className="m-0 text-sm font-medium text-card-foreground line-clamp-3 flex-1">
+                  <p className="m-0 text-sm font-medium text-card-foreground line-clamp-3 flex-1"
+                    dir={isPersian(video.title) ? "rtl" : "ltr"}
+                  >
                     {video.title}
                   </p>
                 </div>
@@ -136,38 +130,13 @@ const VideoCard: FC<IVideoCard> = ({
         </ContextMenuContent>
       </ContextMenu>
 
-      {/* Rename Dialog */}
-      <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Rename Video</DialogTitle>
-            <DialogDescription>
-              Enter a new name for the video. This will rename the actual file.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Input
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              placeholder="Enter new title"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleRename();
-                }
-              }}
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setRenameDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleRename}>Rename</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <RenameDialog
+        open={renameDialogOpen}
+        onOpenChange={setRenameDialogOpen}
+        title={newTitle}
+        onTitleChange={setNewTitle}
+        onRename={handleRename}
+      />
     </>
   );
 };
