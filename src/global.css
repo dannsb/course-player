@@ -150,3 +150,60 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Video.js Sleek skin overrides to match our theme */
+.video-js.skin_sleek .sleek-bar {
+  background-color: rgb(var(--secondary) / 0.95) !important;
+  backdrop-filter: blur(8px);
+}
+
+.video-js.skin_sleek .sleek-bar > .vjs-current-time,
+.video-js.skin_sleek .sleek-bar > .vjs-duration {
+  color: rgb(var(--foreground)) !important;
+}
+
+.video-js.skin_sleek .sleek-bar .vjs-play-progress {
+  background-color: rgb(var(--foreground)) !important;
+}
+
+.video-js.skin_sleek .sleek-bar .vjs-volume-level {
+  background-color: rgb(var(--foreground)) !important;
+}
+
+/* Custom sleek theme - Playback rate styling */
+.video-js.skin_sleek .sleek-bar .vjs-playback-rate {
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(var(--foreground));
+  position: relative;
+}
+.video-js.skin_sleek .sleek-bar .vjs-playback-rate-value {
+  top: 63%;
+  transform: translateY(-50%);
+  position: absolute;
+}
+
+
+.video-js.skin_sleek .sleek-bar .vjs-playback-rate .vjs-menu-button-popup .vjs-menu {
+  bottom: 4.5rem !important;
+  background-color: rgb(var(--foreground));
+  border: 1px solid rgb(var(--border));
+}
+
+.video-js.skin_sleek .sleek-bar .vjs-playback-rate .vjs-menu-button-popup .vjs-menu .vjs-menu-content {
+  background-color: transparent;
+}
+
+.video-js.skin_sleek .sleek-bar .vjs-playback-rate .vjs-menu-button-popup .vjs-menu li.vjs-menu-item {
+  color: rgb(var(--foreground));
+}
+
+.video-js.skin_sleek .sleek-bar .vjs-playback-rate .vjs-menu-button-popup .vjs-menu li.vjs-menu-item:hover,
+.video-js.skin_sleek .sleek-bar .vjs-playback-rate .vjs-menu-button-popup .vjs-menu li.vjs-menu-item.vjs-selected {
+  background-color: rgb(var(--primary) / 0.1);
+  color: rgb(var(--foreground));
+}
+
+

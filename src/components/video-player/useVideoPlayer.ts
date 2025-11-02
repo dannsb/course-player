@@ -41,10 +41,35 @@ export const useVideoPlayer = ({ videoPath, onTimeUpdate, initialProgress }: Use
         },
       ));
 
-      // Enable hotkeys
+      // Enable hotkeys and custom sleek theme
       player.ready(() => {
         //skin: 'slate', 'spaced', 'sleek', 'zen'
-        (player as any).theme({skin:'zen'}); 
+        (player as any).theme({skin:'sleek'}); 
+        
+        // Custom sleek modifications: remove rewind button, add playback rate
+        const sleekBar = player.el().querySelector('.sleek-bar');
+        if (sleekBar) {
+          // Remove rewind button if exists
+          const rewindBtn = sleekBar.querySelector('.vjs-rewind-button');
+          if (rewindBtn) {
+            rewindBtn.remove();
+          }
+          
+          // Add playback rate control after hotkeys are set up
+          setTimeout(() => {
+            const controlBar = (player as any).controlBar;
+            if (controlBar) {
+              const playbackRateControl = controlBar.getChild('PlaybackRateMenuButton');
+              if (playbackRateControl) {
+                const spacer = sleekBar.querySelector('.vjs-custom-control-spacer');
+                if (spacer) {
+                  sleekBar.insertBefore(playbackRateControl.el(), spacer);
+                }
+              }
+            }
+          }, 100);
+        }
+        
         (player as any).hotkeys({
           volumeStep: 0.1,
           seekStep: 5,
