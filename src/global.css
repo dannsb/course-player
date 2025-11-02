@@ -83,24 +83,6 @@
   }
 }
 
-/* Video.js Custom Styles */
-.video-js .vjs-control-bar {
-  background-color: rgba(45, 45, 45, 0.95) !important;
-}
-
-.video-js .vjs-menu-content {
-  background-color: rgba(45, 45, 45, 0.95) !important;
-}
-
-.video-js .vjs-big-play-button {
-  background-color: rgba(45, 45, 45, 0.9) !important;
-  border-color: rgba(235, 235, 235, 0.5) !important;
-}
-
-.video-js .vjs-big-play-button:hover {
-  background-color: rgba(45, 45, 45, 0.8) !important;
-  border-color: rgba(235, 235, 235, 0.4) !important;
-}
 
 :root {
   --radius: 0.65rem;

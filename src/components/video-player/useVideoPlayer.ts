@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import videojs from "video.js";
 import type Player from "video.js/dist/types/player";
 import "videojs-hotkeys";
+import "videojs-theme-kit/style.css";
+import "videojs-theme-kit/videojs-skin.min.js";
 
 interface UseVideoPlayerProps {
   videoPath: string;
@@ -25,7 +27,6 @@ export const useVideoPlayer = ({ videoPath, onTimeUpdate, initialProgress }: Use
     if (!playerRef.current) {
       const videoElement = document.createElement("video-js");
 
-      videoElement.classList.add("vjs-big-play-centered");
       videoRef.current!.appendChild(videoElement);
 
       const player = (playerRef.current = videojs(
@@ -42,6 +43,8 @@ export const useVideoPlayer = ({ videoPath, onTimeUpdate, initialProgress }: Use
 
       // Enable hotkeys
       player.ready(() => {
+        //skin: 'slate', 'spaced', 'sleek', 'zen'
+        (player as any).theme({skin:'zen'}); 
         (player as any).hotkeys({
           volumeStep: 0.1,
           seekStep: 5,

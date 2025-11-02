@@ -33,7 +33,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, IVideoPlayer>(({
   return (
     <div className="flex-1 bg-background flex flex-col items-center justify-center">
       <div data-vjs-player className="w-4/5">
-        <div ref={videoRef} className="rounded-xl overflow-hidden" />
+        <div ref={videoRef} className="rounded-xl overflow-hidden shadow-[0_0_20px_rgb(var(--foreground)/0.15)]" />
       </div>
       <h3 className="text-white mt-3 text-xl" dir={isPersian(title) ? "rtl" : "ltr"}>{title}</h3>
     </div>
