@@ -12,12 +12,9 @@ import { useVideoProgress } from "./hooks/useVideoProgress";
 import { useVideoManagement } from "./hooks/useVideoManagement";
 import { SidebarProvider, useSidebar, SidebarTrigger } from "./components/ui/sidebar";
 
-// Component that uses the sidebar context
 function AppContent() {
-  // Video player ref
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
 
-  // Dialog management
   const { isOpen, content, showDialog, setIsOpen } = useDialog();
 
   // Video management (loading, selection, renaming)
@@ -59,7 +56,6 @@ function AppContent() {
   return (
     <>
       <div className="flex h-screen w-full ">
-        {/* Sidebar with video list and import button */}
         <div className={`flex flex-col h-full justify-between transition-all duration-200 ${state === "collapsed" ? "w-16" : "w-72"}`}>
           <VideoList
             videos={videos}
