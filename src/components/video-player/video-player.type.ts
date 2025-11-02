@@ -3,5 +3,7 @@ export interface IVideoPlayer {
   title: string;
   onTimeUpdate: () => void;
   initialProgress?: number;
+  initialNote?: string;
+  onNoteChange: (note: string) => void;
 }
 

@@ -3,15 +3,24 @@ import { VideoItem } from "../components/video-list/video-list.type";
 import { VideoPlayerRef } from "../components/video-player/video-player";
 
 const STORAGE_KEY_PREFIX = "video_progress_";
+const NOTES_STORAGE_KEY_PREFIX = "video_notes_";
 
 export const useVideoProgress = (folderPath?: string, videoPlayerRef?: RefObject<VideoPlayerRef | null>) => {
   const [progress, setProgress] = useState<Record<number, number>>({});
+  const [notes, setNotes] = useState<Record<number, string>>({});
 
   // Generate storage key based on folder path
   const getStorageKey = useCallback(() => {
     if (!folderPath) return null;
     const sanitizedPath = folderPath.replace(/[^a-zA-Z0-9]/g, "_");
     return `${STORAGE_KEY_PREFIX}${sanitizedPath}`;
+  }, [folderPath]);
+
+  // Generate notes storage key based on folder path
+  const getNotesStorageKey = useCallback(() => {
+    if (!folderPath) return null;
+    const sanitizedPath = folderPath.replace(/[^a-zA-Z0-9]/g, "_");
+    return `${NOTES_STORAGE_KEY_PREFIX}${sanitizedPath}`;
   }, [folderPath]);
 
   // Load progress from local storage when folder changes
@@ -34,6 +43,26 @@ export const useVideoProgress = (folderPath?: string, videoPlayerRef?: RefObject
     }
   }, [folderPath, getStorageKey]);
 
+  // Load notes from local storage when folder changes
+  useEffect(() => {
+    const storageKey = getNotesStorageKey();
+    if (!storageKey) return;
+
+    try {
+      const savedNotes = localStorage.getItem(storageKey);
+      if (savedNotes) {
+        const parsedNotes = JSON.parse(savedNotes);
+        setNotes(parsedNotes);
+      } else {
+        // Reset notes if no saved data for this folder
+        setNotes({});
+      }
+    } catch (error) {
+      console.error("Error loading notes from local storage:", error);
+      setNotes({});
+    }
+  }, [folderPath, getNotesStorageKey]);
+
   // Save progress to local storage whenever it changes
   useEffect(() => {
     const storageKey = getStorageKey();
@@ -45,6 +74,18 @@ export const useVideoProgress = (folderPath?: string, videoPlayerRef?: RefObject
       console.error("Error saving progress to local storage:", error);
     }
   }, [progress, getStorageKey]);
+
+  // Save notes to local storage whenever they change
+  useEffect(() => {
+    const storageKey = getNotesStorageKey();
+    if (!storageKey) return;
+
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(notes));
+    } catch (error) {
+      console.error("Error saving notes to local storage:", error);
+    }
+  }, [notes, getNotesStorageKey]);
 
   const handleTimeUpdate = useCallback(
     (currentVideo: VideoItem | null) => {
@@ -80,11 +121,17 @@ export const useVideoProgress = (folderPath?: string, videoPlayerRef?: RefObject
     }
   }, [videoPlayerRef]);
 
+  const updateNote = useCallback((videoId: number, note: string) => {
+    setNotes((prev) => ({ ...prev, [videoId]: note }));
+  }, []);
+
   return {
     progress,
     handleTimeUpdate,
     markAsCompleted,
     markAsNotStarted,
+    notes,
+    updateNote,
   };
 };
 

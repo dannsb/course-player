@@ -33,7 +33,7 @@ function AppContent() {
   });
 
   // Video progress tracking
-  const { progress, handleTimeUpdate, markAsCompleted, markAsNotStarted } =
+  const { progress, handleTimeUpdate, markAsCompleted, markAsNotStarted, notes, updateNote } =
     useVideoProgress(folderPath, videoPlayerRef);
 
   const { state } = useSidebar();
@@ -96,6 +96,8 @@ function AppContent() {
               title={currentVideo.title}
               onTimeUpdate={() => handleTimeUpdate(currentVideo)}
               initialProgress={progress[currentVideo.id] || 0}
+              initialNote={notes[currentVideo.id] || ""}
+              onNoteChange={(note) => updateNote(currentVideo.id, note)}
             />
           </div>
         )}
