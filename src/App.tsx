@@ -10,8 +10,10 @@ import { FolderIcon } from "lucide-react";
 import { useDialog } from "./hooks/useDialog";
 import { useVideoProgress } from "./hooks/useVideoProgress";
 import { useVideoManagement } from "./hooks/useVideoManagement";
+import { SidebarProvider, useSidebar, SidebarTrigger } from "./components/ui/sidebar";
 
-function App() {
+// Component that uses the sidebar context
+function AppContent() {
   // Video player ref
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
 
@@ -37,6 +39,8 @@ function App() {
   const { progress, handleTimeUpdate, markAsCompleted, markAsNotStarted } =
     useVideoProgress(folderPath, videoPlayerRef);
 
+  const { state } = useSidebar();
+
   // Show folder import screen if no videos
   if (videos.length === 0) {
     return (
@@ -54,9 +58,9 @@ function App() {
 
   return (
     <>
-      <div className="flex h-screen">
+      <div className="flex h-screen w-full ">
         {/* Sidebar with video list and import button */}
-        <div className="flex flex-col w-72 h-full justify-between">
+        <div className={`flex flex-col h-full justify-between transition-all duration-200 ${state === "collapsed" ? "w-16" : "w-72"}`}>
           <VideoList
             videos={videos}
             currentVideo={currentVideo!}
@@ -66,30 +70,38 @@ function App() {
             onMarkAsCompleted={markAsCompleted}
             onMarkAsNotStarted={markAsNotStarted}
             onRename={handleRename}
+            isCollapsed={state === "collapsed"}
           />
-          <div className="bg-secondary/50 border-r border-border">
-            <Separator className="mb-2" />
-            <div className="p-2.5">
-              <Button
-                onClick={handleSelectFolder}
-                variant="secondary"
-                className="w-full gap-2"
-              >
-                <FolderIcon className="w-4 h-4" /> New Folder
-              </Button>
+          {state === "expanded" && (
+            <div className="bg-secondary/50 border-r border-border">
+              <Separator className="mb-2" />
+              <div className="p-2.5">
+                <Button
+                  onClick={handleSelectFolder}
+                  variant="secondary"
+                  className="w-full gap-2"
+                >
+                  <FolderIcon className="w-4 h-4" /> New Folder
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Video Player */}
         {currentVideo && (
-          <VideoPlayer
-            ref={videoPlayerRef}
-            videoPath={currentVideo.file}
-            title={currentVideo.title}
-            onTimeUpdate={() => handleTimeUpdate(currentVideo)}
-            initialProgress={progress[currentVideo.id] || 0}
-          />
+          <div className="flex flex-col flex-1 relative ">
+            <div className="absolute top-2 left-2 z-10">
+              <SidebarTrigger />
+            </div>
+            <VideoPlayer
+              ref={videoPlayerRef}
+              videoPath={currentVideo.file}
+              title={currentVideo.title}
+              onTimeUpdate={() => handleTimeUpdate(currentVideo)}
+              initialProgress={progress[currentVideo.id] || 0}
+            />
+          </div>
         )}
       </div>
 
@@ -106,6 +118,14 @@ function App() {
         message={content.message}
       />
     </>
+  );
+}
+
+function App() {
+  return (
+    <SidebarProvider>
+      <AppContent />
+    </SidebarProvider>
   );
 }
 

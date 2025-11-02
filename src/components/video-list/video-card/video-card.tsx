@@ -63,10 +63,10 @@ const VideoCard: FC<IVideoCard> = ({
               }
             `}
           >
-            <CardContent className="p-0">
+            <CardContent className="p-0 min-h-[240px]">
               {/* Video Thumbnail */}
               {video.thumbnail && (
-                <div className="relative w-full aspect-video overflow-hidden rounded-t-lg">
+                <div className="relative w-full aspect-video overflow-hidden rounded-t-lg ">
                   <img
                     src={video.thumbnail}
                     alt={video.title}

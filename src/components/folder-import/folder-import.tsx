@@ -6,7 +6,7 @@ import { FolderIcon } from "lucide-react";
 
 const FolderImport: FC<IFolderImport> = ({ onFolderSelect, hasVideos }) => {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-primary/20 via-background to-secondary/20 p-4">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-primary/20 via-background to-secondary/20 p-4 w-full">
       <Card className="max-w-lg w-full shadow-2xl border-border/50 backdrop-blur-sm">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">

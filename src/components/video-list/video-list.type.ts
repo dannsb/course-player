@@ -7,6 +7,7 @@ export interface IVideoList {
   onMarkAsCompleted?: (video: VideoItem) => void;
   onMarkAsNotStarted?: (video: VideoItem) => void;
   onRename?: (video: VideoItem, newTitle: string) => void;
+  isCollapsed?: boolean;
 }
 
 export interface VideoItem {
