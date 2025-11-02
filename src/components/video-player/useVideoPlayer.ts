@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import videojs from "video.js";
 import type Player from "video.js/dist/types/player";
+import "videojs-hotkeys";
 
 interface UseVideoPlayerProps {
   videoPath: string;
@@ -34,9 +35,24 @@ export const useVideoPlayer = ({ videoPath, onTimeUpdate, initialProgress }: Use
           preload: "auto",
           fluid: true,
           playbackRates: [1, 1.25, 1.5, 2],
+          responsive: true,
           sources: [{ src: videoPath, type: "video/mp4" }],
         },
       ));
+
+      // Enable hotkeys
+      player.ready(() => {
+        (player as any).hotkeys({
+          volumeStep: 0.1,
+          seekStep: 5,
+          enableModifiersForNumbers: false,
+          enableVolumeScroll: true,
+          enableHoverScroll: true,
+          enableFullscreen: true,
+          enableNumbers: true,
+          alwaysCaptureHotkeys: true,
+        });
+      });
 
       player.on("timeupdate", () => {
         onTimeUpdateRef.current();
@@ -89,4 +105,3 @@ export const useVideoPlayer = ({ videoPath, onTimeUpdate, initialProgress }: Use
 
   return { videoRef, playerRef };
 };
-
