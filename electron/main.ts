@@ -72,7 +72,7 @@ ipcMain.handle("select-folder", async () => {
     const files = fs.readdirSync(folderPath);
     
     // Filter video files
-    const videoExtensions = [".mp4", ".mkv", ".avi", ".mov", ".webm", ".flv", ".wmv", ".m4v", "ts"];
+    const videoExtensions = [".mp4", ".mkv", ".avi", ".mov", ".webm", ".flv", ".m4v", "ts"];
     const videoFiles = files.filter((file: string) => {
       const ext = path.extname(file).toLowerCase();
       return videoExtensions.includes(ext);
