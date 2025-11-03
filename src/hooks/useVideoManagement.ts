@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { get, set } from 'idb-keyval';
 import { VideoItem } from "../components/video-list/video-list.type";
 import { generateVideoThumbnail } from "../utils/thumbnail";
 import { isElectron, selectVideoFolder, renameVideoFile } from "../utils/electron";
@@ -26,41 +27,36 @@ export const useVideoManagement = ({
    */
   useEffect(() => {
     const generateThumbnails = async () => {
-      // Only generate thumbnails if videos have no thumbnails yet
       if (videos.length === 0 || videos.every(v => v.thumbnail)) return;
-
       setIsLoadingThumbnails(true);
-
-      const videosWithThumbnails = await Promise.all(
+  
+      const updatedVideos = await Promise.all(
         videos.map(async (video) => {
-          // Skip if thumbnail already exists
           if (video.thumbnail) return video;
-          
+  
+          const key = `thumb-${video.file}`;
           try {
+            // چک کش از IndexedDB
+            const cached = await get(key);
+            if (cached) {
+              return { ...video, thumbnail: cached };
+            }
+  
+            // اگه نبود، تولید کن و ذخیره کن
             const thumbnail = await generateVideoThumbnail(video.file);
+            await set(key, thumbnail);
             return { ...video, thumbnail };
-          } catch (error) {
-            console.error(
-              `Error generating thumbnail for ${video.title}:`,
-              error
-            );
+          } catch (err) {
+            console.error(`Error generating thumbnail for ${video.title}:`, err);
             return video;
           }
         })
       );
-
-      // Only update if we actually generated new thumbnails
-      const hasNewThumbnails = videosWithThumbnails.some((v, i) => 
-        v.thumbnail && v.thumbnail !== videos[i].thumbnail
-      );
-      
-      if (hasNewThumbnails) {
-        setVideos(videosWithThumbnails);
-      }
-
+  
+      setVideos(updatedVideos);
       setIsLoadingThumbnails(false);
     };
-
+  
     generateThumbnails();
   }, [videos]);
 
