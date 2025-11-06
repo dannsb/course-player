@@ -26,7 +26,8 @@ const VideoCard: FC<IVideoCard> = ({
   const [newTitle, setNewTitle] = useState(video.title);
 
   const getVideoStatus = (progress: number) => {
-    if (progress >= 90)
+    // Only show "Completed" when progress is 100% (or very close, accounting for rounding)
+    if (progress >= 99.5)
       return { label: "Completed", variant: "outline" as const };
     if (progress > 0)
       return { label: "In Progress", variant: "secondary" as const };

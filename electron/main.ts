@@ -1,12 +1,13 @@
 // electron/main.ts
-const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog, nativeTheme } = require("electron");
 const path = require("path");
 const fs = require("fs");
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 1400,
-    height: 800,
+    width: 1600,
+    height: 1000,
+    icon: path.join(__dirname, "../public/favicon.ico"),
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -101,6 +102,8 @@ ipcMain.handle("select-folder", async () => {
 });
 
 app.whenReady().then(() => {
+  // Force dark mode regardless of system theme
+  nativeTheme.themeSource = "dark";
   createWindow();
 });
 

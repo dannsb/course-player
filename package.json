@@ -100,9 +100,16 @@
     "forge": {
       "packagerConfig": {
         "asar": true,
-        "icon": "./public/logo512.png",
+        "icon": "./public/favicon.ico",
         "extraResource": [
           "./build"
+        ],
+        "ignore": [
+          "^/src($|/)",       
+          "\\.gitignore",
+          "README\\.md",
+          "\\.map$",
+          "node_modules/(electron|electron-packager|electron-rebuild|electron-forge)"
         ]
       },
       "makers": [
@@ -110,24 +117,11 @@
           "name": "@electron-forge/maker-squirrel",
           "config": {
             "name": "course_player",
+            "setupIcon": "./public/favicon.ico",
             "authors": "dannsb",
-            "description": "A video course player application for local video files"
+            "description": "A video course player application for local video files",
+            "compression": "maximum"
           }
-        },
-        {
-          "name": "@electron-forge/maker-zip",
-          "platforms": [
-            "darwin",
-            "linux"
-          ]
-        },
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {}
-        },
-        {
-          "name": "@electron-forge/maker-rpm",
-          "config": {}
         }
       ],
       "publishers": [

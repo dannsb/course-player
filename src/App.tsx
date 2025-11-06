@@ -73,6 +73,13 @@ function AppContent() {
     }
   }, [currentVideo, updateNote]);
 
+  // Memoize the onEnded handler to mark video as completed when it finishes
+  const onEndedHandler = useCallback(() => {
+    if (currentVideo) {
+      markAsCompleted(currentVideo);
+    }
+  }, [currentVideo, markAsCompleted]);
+
   // Show folder import screen if no videos
   if (videos.length === 0) {
     return (
@@ -132,6 +139,7 @@ function AppContent() {
               videoPath={currentVideo.file}
               title={currentVideo.title}
               onTimeUpdate={onTimeUpdateHandler}
+              onEnded={onEndedHandler}
               initialNote={notes[currentVideo.id] || ""}
               onNoteChange={onNoteChangeHandler}
             />

@@ -16,10 +16,11 @@ const VideoPlayer = forwardRef<VideoPlayerRef, IVideoPlayer>(({
   videoPath,
   title,
   onTimeUpdate,
+  onEnded,
   initialNote = "",
   onNoteChange,
 }, ref) => {
-  const { videoRef, playerRef } = useVideoPlayer({ videoPath, onTimeUpdate });
+  const { videoRef, playerRef } = useVideoPlayer({ videoPath, onTimeUpdate, onEnded });
   const [note, setNote] = useState(initialNote);
   const notesRef = useRef<HTMLDivElement>(null);
 

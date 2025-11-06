@@ -5,7 +5,6 @@ import {
   RefObject,
   useRef,
   useLayoutEffect,
-  useMemo,
 } from "react";
 import { VideoItem } from "../components/video-list/video-list.type";
 import { VideoPlayerRef } from "../components/video-player/video-player";
@@ -159,7 +158,30 @@ export const useVideoProgress = (
         return;
       }
 
-      const percent = (currentTime / duration) * 100;
+      // Calculate progress: only reach 100% in the final completion window
+      const COMPLETION_WINDOW_SECONDS = 6;
+      let percent: number;
+      
+      if (duration <= COMPLETION_WINDOW_SECONDS) {
+        // For very short videos, use normal calculation
+        percent = (currentTime / duration) * 100;
+      } else {
+        const effectiveDuration = duration - COMPLETION_WINDOW_SECONDS;
+        
+        if (currentTime <= effectiveDuration) {
+          // Before the completion window: calculate progress based on effective duration
+          // This will cap at ~99% until we reach the completion window
+          percent = (currentTime / effectiveDuration) * 99;
+        } else {
+          // In the completion window: progress from 99% to 100%
+          const timeInCompletionWindow = currentTime - effectiveDuration;
+          const progressInCompletionWindow = (timeInCompletionWindow / COMPLETION_WINDOW_SECONDS) * 1; // 1% range (99% to 100%)
+          percent = 99 + progressInCompletionWindow;
+        }
+      }
+      
+      // Ensure we don't exceed 100%
+      percent = Math.min(percent, 100);
 
       setProgress((prev) => {
         // Final validation: ensure folder hasn't changed during state update
@@ -168,12 +190,12 @@ export const useVideoProgress = (
         }
 
         const currentProgress = prev[currentVideo.id] || 0;
-        // Only update if new progress is greater than current progress
-        // AND less than 99% (to avoid premature completion)
-        const newProgress = Math.max(currentProgress, Math.min(percent, 99));
+        // Calculate new progress, allowing up to 100%
+        const newProgress = Math.max(currentProgress, percent);
 
-        // Only update if there's a meaningful change (> 1%)
-        if (Math.abs(newProgress - currentProgress) < 1) {
+        // If we're very close to the end (>= 99%), always update to ensure we can reach 100%
+        // Otherwise, only update if there's a meaningful change (> 1%)
+        if (newProgress < 99 && Math.abs(newProgress - currentProgress) < 1) {
           return prev;
         }
 
@@ -184,14 +206,11 @@ export const useVideoProgress = (
   );
 
   const markAsCompleted = useCallback((video: VideoItem) => {
-    console.log(4);
-
     setProgress((prev) => ({ ...prev, [video.id]: 100 }));
   }, []);
 
   const markAsNotStarted = useCallback(
     (video: VideoItem) => {
-    console.log(6);
       setProgress((prev) => ({ ...prev, [video.id]: 0 }));
 
       if (videoPlayerRef?.current) {

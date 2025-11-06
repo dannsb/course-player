@@ -8,19 +8,26 @@ import "videojs-theme-kit/videojs-skin.min.js";
 interface UseVideoPlayerProps {
   videoPath: string;
   onTimeUpdate: () => void;
+  onEnded?: () => void;
 }
 
-export const useVideoPlayer = ({ videoPath, onTimeUpdate }: UseVideoPlayerProps) => {
+export const useVideoPlayer = ({ videoPath, onTimeUpdate, onEnded }: UseVideoPlayerProps) => {
   const videoRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<Player | null>(null);
   const onTimeUpdateRef = useRef(onTimeUpdate);
+  const onEndedRef = useRef(onEnded);
   const hasRestoredRef = useRef(false);
   const timeUpdateHandlerRef = useRef<(() => void) | null>(null);
+  const endedHandlerRef = useRef<(() => void) | null>(null);
 
-  // Update the ref when onTimeUpdate changes
+  // Update the refs when callbacks change
   useEffect(() => {
     onTimeUpdateRef.current = onTimeUpdate;
   }, [onTimeUpdate]);
+
+  useEffect(() => {
+    onEndedRef.current = onEnded;
+  }, [onEnded]);
 
   useEffect(() => {
     // Make sure Video.js player is only initialized once
@@ -89,12 +96,24 @@ export const useVideoPlayer = ({ videoPath, onTimeUpdate }: UseVideoPlayerProps)
       timeUpdateHandlerRef.current = timeUpdateHandler;
       player.on("timeupdate", timeUpdateHandler);
 
+      // Create and store the ended handler
+      const endedHandler = () => {
+        if (onEndedRef.current) {
+          onEndedRef.current();
+        }
+      };
+      endedHandlerRef.current = endedHandler;
+      player.on("ended", endedHandler);
+
     } else {
       const player = playerRef.current;
       
-      // Remove the old timeupdate listener before changing the video
+      // Remove the old listeners before changing the video
       if (timeUpdateHandlerRef.current) {
         player.off("timeupdate", timeUpdateHandlerRef.current);
+      }
+      if (endedHandlerRef.current) {
+        player.off("ended", endedHandlerRef.current);
       }
       
       // Update the video source
@@ -106,15 +125,29 @@ export const useVideoPlayer = ({ videoPath, onTimeUpdate }: UseVideoPlayerProps)
       };
       timeUpdateHandlerRef.current = timeUpdateHandler;
       player.on("timeupdate", timeUpdateHandler);
+
+      // Re-register the ended listener with the current handler
+      const endedHandler = () => {
+        if (onEndedRef.current) {
+          onEndedRef.current();
+        }
+      };
+      endedHandlerRef.current = endedHandler;
+      player.on("ended", endedHandler);
     }
 
     // Reset the restoration flag when video changes
     hasRestoredRef.current = false;
     
-    // Cleanup function to remove the listener when video changes or component unmounts
+    // Cleanup function to remove the listeners when video changes or component unmounts
     return () => {
-      if (playerRef.current && timeUpdateHandlerRef.current) {
-        playerRef.current.off("timeupdate", timeUpdateHandlerRef.current);
+      if (playerRef.current) {
+        if (timeUpdateHandlerRef.current) {
+          playerRef.current.off("timeupdate", timeUpdateHandlerRef.current);
+        }
+        if (endedHandlerRef.current) {
+          playerRef.current.off("ended", endedHandlerRef.current);
+        }
       }
     };
   }, [videoPath]);
