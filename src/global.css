@@ -206,4 +206,18 @@
   color: rgb(var(--foreground));
 }
 
+/* Sonner toast styling - ensure popover background */
+[data-sonner-toaster] {
+  --normal-bg: rgb(var(--popover));
+  --normal-text: rgb(var(--popover-foreground));
+  --normal-border: rgb(var(--border));
+}
+
+[data-sonner-toast] {
+  background-color: rgb(var(--popover)) !important;
+  color: rgb(var(--popover-foreground)) !important;
+  border-color: rgb(var(--border)) !important;
+}
+
+
 

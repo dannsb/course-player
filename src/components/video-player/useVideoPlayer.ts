@@ -8,14 +8,14 @@ import "videojs-theme-kit/videojs-skin.min.js";
 interface UseVideoPlayerProps {
   videoPath: string;
   onTimeUpdate: () => void;
-  initialProgress?: number;
 }
 
-export const useVideoPlayer = ({ videoPath, onTimeUpdate, initialProgress }: UseVideoPlayerProps) => {
+export const useVideoPlayer = ({ videoPath, onTimeUpdate }: UseVideoPlayerProps) => {
   const videoRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<Player | null>(null);
   const onTimeUpdateRef = useRef(onTimeUpdate);
   const hasRestoredRef = useRef(false);
+  const timeUpdateHandlerRef = useRef<(() => void) | null>(null);
 
   // Update the ref when onTimeUpdate changes
   useEffect(() => {
@@ -82,43 +82,43 @@ export const useVideoPlayer = ({ videoPath, onTimeUpdate, initialProgress }: Use
         });
       });
 
-      player.on("timeupdate", () => {
+      // Create and store the timeupdate handler
+      const timeUpdateHandler = () => {
         onTimeUpdateRef.current();
-      });
+      };
+      timeUpdateHandlerRef.current = timeUpdateHandler;
+      player.on("timeupdate", timeUpdateHandler);
 
     } else {
       const player = playerRef.current;
+      
+      // Remove the old timeupdate listener before changing the video
+      if (timeUpdateHandlerRef.current) {
+        player.off("timeupdate", timeUpdateHandlerRef.current);
+      }
+      
+      // Update the video source
       player.src([{ src: videoPath, type: "video/mp4" }]);
+      
+      // Re-register the timeupdate listener with the current handler
+      const timeUpdateHandler = () => {
+        onTimeUpdateRef.current();
+      };
+      timeUpdateHandlerRef.current = timeUpdateHandler;
+      player.on("timeupdate", timeUpdateHandler);
     }
 
     // Reset the restoration flag when video changes
     hasRestoredRef.current = false;
-  }, [videoPath]);
-
-  // Restore video position from progress
-  useEffect(() => {
-    if (!playerRef.current || hasRestoredRef.current) return;
-    if (!initialProgress || initialProgress <= 0 || initialProgress >= 100) return;
-
-    const player = playerRef.current;
-
-    // Wait for the video metadata to load before seeking
-    const handleLoadedMetadata = () => {
-      const duration = player.duration();
-      if (!hasRestoredRef.current && duration && !isNaN(duration)) {
-        const timeToSeek = (initialProgress / 100) * duration;
-        player.currentTime(timeToSeek);
-        hasRestoredRef.current = true;
+    
+    // Cleanup function to remove the listener when video changes or component unmounts
+    return () => {
+      if (playerRef.current && timeUpdateHandlerRef.current) {
+        playerRef.current.off("timeupdate", timeUpdateHandlerRef.current);
       }
     };
+  }, [videoPath]);
 
-    // Check if metadata is already loaded
-    if (player.readyState() >= 1) {
-      handleLoadedMetadata();
-    } else {
-      player.one("loadedmetadata", handleLoadedMetadata);
-    }
-  }, [initialProgress]);
 
   useEffect(() => {
     const player = playerRef.current;

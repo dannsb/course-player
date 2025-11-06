@@ -1,16 +1,24 @@
-import { useRef } from "react";
-import VideoPlayer, { VideoPlayerRef } from "./components/video-player/video-player";
+import { useRef, useCallback } from "react";
+import VideoPlayer, {
+  VideoPlayerRef,
+} from "./components/video-player/video-player";
 import VideoList from "./components/video-list/video-list";
 import FolderImport from "./components/folder-import/folder-import";
 import LoadingOverlay from "./components/ui/loading-overlay";
 import DialogNotification from "./components/ui/dialog-notification";
+import { Toaster } from "./components/ui/sonner";
 import { Button } from "./components/ui/button";
 import { Separator } from "./components/ui/separator";
 import { FolderIcon } from "lucide-react";
 import { useDialog } from "./hooks/useDialog";
 import { useVideoProgress } from "./hooks/useVideoProgress";
 import { useVideoManagement } from "./hooks/useVideoManagement";
-import { SidebarProvider, useSidebar, SidebarTrigger } from "./components/ui/sidebar";
+import { useContinueToast } from "./hooks/useContinueToast";
+import {
+  SidebarProvider,
+  useSidebar,
+  SidebarTrigger,
+} from "./components/ui/sidebar";
 
 function AppContent() {
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
@@ -33,10 +41,37 @@ function AppContent() {
   });
 
   // Video progress tracking
-  const { progress, handleTimeUpdate, markAsCompleted, markAsNotStarted, notes, updateNote } =
-    useVideoProgress(folderPath, videoPlayerRef);
+  const {
+    progress,
+    handleTimeUpdate,
+    markAsCompleted,
+    markAsNotStarted,
+    notes,
+    updateNote,
+  } = useVideoProgress(folderPath, videoPlayerRef);
+
+  // Show continue toast when video has saved progress
+  useContinueToast({
+    currentVideo,
+    progress,
+    videoPlayerRef,
+  });
 
   const { state } = useSidebar();
+
+  // Memoize the onTimeUpdate handler to prevent unnecessary re-renders
+  const onTimeUpdateHandler = useCallback(() => {
+    if (currentVideo) {
+      handleTimeUpdate(currentVideo);
+    }
+  }, [currentVideo, handleTimeUpdate]);
+
+  // Memoize the onNoteChange handler to prevent unnecessary re-renders
+  const onNoteChangeHandler = useCallback((note: string) => {
+    if (currentVideo) {
+      updateNote(currentVideo.id, note);
+    }
+  }, [currentVideo, updateNote]);
 
   // Show folder import screen if no videos
   if (videos.length === 0) {
@@ -52,11 +87,13 @@ function AppContent() {
       </>
     );
   }
-
+  
   return (
     <>
       <div className="flex h-screen w-full ">
-        <div className={`flex flex-col h-full justify-between transition-all duration-200 ${state === "collapsed" ? "w-16" : "w-72"}`}>
+        <div
+          className={`flex flex-col h-full justify-between transition-all duration-200 ${state === "collapsed" ? "w-16" : "w-72"}`}
+        >
           <VideoList
             videos={videos}
             currentVideo={currentVideo!}
@@ -94,10 +131,9 @@ function AppContent() {
               ref={videoPlayerRef}
               videoPath={currentVideo.file}
               title={currentVideo.title}
-              onTimeUpdate={() => handleTimeUpdate(currentVideo)}
-              initialProgress={progress[currentVideo.id] || 0}
+              onTimeUpdate={onTimeUpdateHandler}
               initialNote={notes[currentVideo.id] || ""}
-              onNoteChange={(note) => updateNote(currentVideo.id, note)}
+              onNoteChange={onNoteChangeHandler}
             />
           </div>
         )}
@@ -115,6 +151,9 @@ function AppContent() {
         title={content.title}
         message={content.message}
       />
+
+      {/* Sonner Toaster for toast notifications */}
+      <Toaster />
     </>
   );
 }

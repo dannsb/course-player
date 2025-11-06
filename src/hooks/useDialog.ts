@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 interface DialogContent {
   title: string;
@@ -15,14 +15,14 @@ export const useDialog = () => {
     message: "",
   });
 
-  const showDialog = (title: string, message: string) => {
+  const showDialog = useCallback((title: string, message: string) => {
     setContent({ title, message });
     setIsOpen(true);
-  };
+  }, []);
 
-  const closeDialog = () => {
+  const closeDialog = useCallback(() => {
     setIsOpen(false);
-  };
+  }, []);
 
   return {
     isOpen,
