@@ -5,5 +5,9 @@ export interface IVideoPlayer {
   onEnded?: () => void;
   initialNote?: string;
   onNoteChange: (note: string) => void;
+  onPrev?: () => void;
+  onNext?: () => void;
+  hasPrev?: boolean;
+  hasNext?: boolean;
 }
 

@@ -80,6 +80,23 @@ function AppContent() {
     }
   }, [currentVideo, markAsCompleted]);
 
+  // Calculate current video index and navigation handlers
+  const currentVideoIndex = currentVideo ? videos.findIndex(v => v.id === currentVideo.id) : -1;
+  const hasPrev = currentVideoIndex > 0;
+  const hasNext = currentVideoIndex >= 0 && currentVideoIndex < videos.length - 1;
+
+  const handlePrev = useCallback(() => {
+    if (hasPrev && currentVideoIndex > 0) {
+      handleSelectVideo(videos[currentVideoIndex - 1]);
+    }
+  }, [hasPrev, currentVideoIndex, videos, handleSelectVideo]);
+
+  const handleNext = useCallback(() => {
+    if (hasNext && currentVideoIndex < videos.length - 1) {
+      handleSelectVideo(videos[currentVideoIndex + 1]);
+    }
+  }, [hasNext, currentVideoIndex, videos, handleSelectVideo]);
+
   // Show folder import screen if no videos
   if (videos.length === 0) {
     return (
@@ -142,6 +159,10 @@ function AppContent() {
               onEnded={onEndedHandler}
               initialNote={notes[currentVideo.id] || ""}
               onNoteChange={onNoteChangeHandler}
+              onPrev={handlePrev}
+              onNext={handleNext}
+              hasPrev={hasPrev}
+              hasNext={hasNext}
             />
           </div>
         )}

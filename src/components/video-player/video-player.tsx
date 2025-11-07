@@ -5,7 +5,8 @@ import { useVideoPlayer } from "./useVideoPlayer";
 import { isPersian } from "../../utils/persian-text";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "../ui/button";
 
 export interface VideoPlayerRef {
   seekTo: (time: number) => void;
@@ -19,6 +20,10 @@ const VideoPlayer = forwardRef<VideoPlayerRef, IVideoPlayer>(({
   onEnded,
   initialNote = "",
   onNoteChange,
+  onPrev,
+  onNext,
+  hasPrev = false,
+  hasNext = false,
 }, ref) => {
   const { videoRef, playerRef } = useVideoPlayer({ videoPath, onTimeUpdate, onEnded });
   const [note, setNote] = useState(initialNote);
@@ -64,8 +69,32 @@ const VideoPlayer = forwardRef<VideoPlayerRef, IVideoPlayer>(({
       <div className="flex-1 overflow-y-auto">
         <div className="flex flex-col min-h-full">
           <div className="flex flex-col items-center justify-center min-h-screen">
-            <div data-vjs-player className="w-4/5">
-              <div ref={videoRef} className="rounded-xl overflow-hidden shadow-[0_0_20px_rgb(var(--foreground)/0.15)]" />
+            <div className="relative w-full flex items-center justify-center">
+              {hasPrev && onPrev && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onPrev}
+                  className="absolute left-[calc(10%-56px)] h-10 w-10 rounded-full bg-background hover:bg-background text-foreground opacity-60 hover:opacity-100 transition-all  z-10"
+                  aria-label="Previous video"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+              )}
+              <div data-vjs-player className="w-4/5">
+                <div ref={videoRef} className="rounded-xl overflow-hidden shadow-[0_0_20px_rgb(var(--foreground)/0.15)]" />
+              </div>
+              {hasNext && onNext && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onNext}
+                  className="absolute right-[calc(10%-56px)] h-10 w-10 rounded-full bg-background hover:bg-background text-foreground opacity-60 hover:opacity-100 transition-all shadow-lg z-10"
+                  aria-label="Next video"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              )}
             </div>
             <h3 className="text-white mt-3 text-xl" dir={isPersian(title) ? "rtl" : "ltr"}>{title}</h3>
             
