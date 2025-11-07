@@ -44,12 +44,15 @@ export const useVideoPlayer = ({ videoPath, onTimeUpdate, onEnded }: UseVideoPla
           fluid: true,
           playbackRates: [1, 1.25, 1.5, 2],
           responsive: true,
+          volume: 0.8,
           sources: [{ src: videoPath, type: "video/mp4" }],
         },
       ));
 
       // Enable hotkeys and custom sleek theme
       player.ready(() => {
+        player.volume(0.8);
+        
         //skin: 'slate', 'spaced', 'sleek', 'zen'
         (player as any).theme({skin:'sleek'}); 
         
@@ -118,6 +121,9 @@ export const useVideoPlayer = ({ videoPath, onTimeUpdate, onEnded }: UseVideoPla
       
       // Update the video source
       player.src([{ src: videoPath, type: "video/mp4" }]);
+      
+      // Ensure volume is set to 80% when video changes
+      player.volume(0.8);
       
       // Re-register the timeupdate listener with the current handler
       const timeUpdateHandler = () => {
