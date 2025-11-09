@@ -85,6 +85,7 @@
     "@electron-forge/plugin-webpack": "^7.10.2",
     "@electron-forge/publisher-github": "^7.10.2",
     "@electron/fuses": "^1.8.0",
+    "@felixrieseberg/electron-forge-maker-nsis": "^7.2.0",
     "@types/node": "^24.9.1",
     "autoprefixer": "^10.4.21",
     "dotenv-cli": "^11.0.0",
@@ -97,46 +98,6 @@
     "wait-on": "^9.0.1"
   },
   "config": {
-    "forge": {
-      "packagerConfig": {
-        "asar": true,
-        "icon": "./public/favicon.ico",
-        "extraResource": [
-          "./build"
-        ],
-        "ignore": [
-          "^/src($|/)",       
-          "\\.gitignore",
-          "README\\.md",
-          "\\.map$",
-          "node_modules/(electron|electron-packager|electron-rebuild|electron-forge)"
-        ]
-      },
-      "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "course_player",
-            "setupIcon": "./public/favicon.ico",
-            "authors": "dannsb",
-            "description": "A video course player application for local video files",
-            "compression": "maximum"
-          }
-        }
-      ],
-      "publishers": [
-        {
-          "name": "@electron-forge/publisher-github",
-          "config": {
-            "repository": {
-              "owner": "dannsb",
-              "name": "course-player"
-            },
-            "prerelease": false,
-            "draft": true
-          }
-        }
-      ]
-    }
+    "forge": "./forge.config.js"
   }
 }
