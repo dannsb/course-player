@@ -1,3 +1,5 @@
+import { getMediaUrl } from "./electron";
+
 export const generateVideoThumbnail = (videoPath: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     const video = document.createElement('video');
@@ -58,7 +60,7 @@ export const generateVideoThumbnail = (videoPath: string): Promise<string> => {
       reject(new Error('Failed to load video'));
     };
 
-    video.src = videoPath;
+    video.src = getMediaUrl(videoPath);
     video.load();
   });
 };

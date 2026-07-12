@@ -76,33 +76,21 @@ export const useContinueToast = ({
                   variant="default"
                   size="sm"
                   onClick={async () => {
-                    // Wait for video to be ready and get duration
                     const seekToPosition = async () => {
-                      const videoElement = document.querySelector("video");
-                      if (!videoElement || !videoPlayerRef.current) return;
-
-                      // Wait for video metadata to load if duration is not available
-                      if (!videoElement.duration || videoElement.duration === 0) {
-                        await new Promise<void>((resolve) => {
-                          const onLoadedMetadata = () => {
-                            videoElement.removeEventListener("loadedmetadata", onLoadedMetadata);
-                            resolve();
-                          };
-                          videoElement.addEventListener("loadedmetadata", onLoadedMetadata);
-                          // Fallback timeout
-                          setTimeout(resolve, 2000);
-                        });
-                      }
-
-                      // Try to seek after a small delay to ensure player is ready
-                      setTimeout(() => {
-                        const videoEl = document.querySelector("video");
-                        if (videoEl && videoEl.duration && videoPlayerRef.current) {
-                          const duration = videoEl.duration;
+                      if (!videoPlayerRef.current) return;
+                      
+                      const start = Date.now();
+                      const checkDuration = () => {
+                        if (!videoPlayerRef.current) return;
+                        const duration = videoPlayerRef.current.getDuration();
+                        if (duration > 0) {
                           const seekTime = (savedProgress / 100) * duration;
                           videoPlayerRef.current.seekTo(seekTime);
+                        } else if (Date.now() - start < 2000) {
+                          setTimeout(checkDuration, 50);
                         }
-                      }, 100);
+                      };
+                      checkDuration();
                     };
 
                     await seekToPosition();

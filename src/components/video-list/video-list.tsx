@@ -18,19 +18,28 @@ const VideoList: FC<IVideoList> = ({
   onMarkAsNotStarted,
   onRename,
   isCollapsed = false,
+  totalVideos,
+  completedVideos,
 }) => {
   return (
     <div
       className={`w-full bg-secondary/50 text-foreground flex flex-col flex-1 overflow-y-auto smooth-scroll border-r border-border   ${isCollapsed ? "px-0 pt-3 " : "p-5"}`}
     >
       <SidebarHeader
-        className={`!p-0  flex items-center border-none ${isCollapsed ? "justify-center" : "gap-2 mb-4"}`}
+        className={`!p-0  flex items-start border-none ${isCollapsed ? "justify-center" : "gap-2 mb-4"}`}
       >
-        <FolderOpen className="w-5 h-5 text-primary flex-shrink-0" />
+        <FolderOpen className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
         {!isCollapsed && (
-          <h2 className="text-xl font-bold text-foreground break-words min-w-[219px]">
-            {folderName}
-          </h2>
+          <div className="flex flex-col">
+            <h2 className="text-xl font-bold text-foreground break-words min-w-[219px]">
+              {folderName}
+            </h2>
+            {totalVideos !== undefined && completedVideos !== undefined && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {completedVideos}/{totalVideos} completed · {totalVideos > 0 ? Math.round((completedVideos / totalVideos) * 100) : 0}%
+              </p>
+            )}
+          </div>
         )}
       </SidebarHeader>
       {!isCollapsed && (
@@ -41,7 +50,7 @@ const VideoList: FC<IVideoList> = ({
                 <VideoCard
                   key={video.id}
                   video={video}
-                  isActive={currentVideo.id === video.id}
+                  isActive={!!(currentVideo && currentVideo.id === video.id)}
                   videoProgress={progress[video.id] || 0}
                   onSelect={onSelectVideo}
                   onMarkAsCompleted={onMarkAsCompleted}
@@ -59,7 +68,7 @@ const VideoList: FC<IVideoList> = ({
             <div
               key={video.id}
               onClick={() => onSelectVideo(video)}
-              className={`w-full p-2 rounded cursor-pointer transition-colors hover:bg-accent ${currentVideo.id === video.id ? "bg-primary/20" : ""
+              className={`w-full p-2 rounded cursor-pointer transition-colors hover:bg-accent ${currentVideo && currentVideo.id === video.id ? "bg-primary/20" : ""
                 }`}
               title={video.title}
             >

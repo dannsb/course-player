@@ -2,7 +2,10 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { get, set } from 'idb-keyval';
 import { VideoItem } from "../components/video-list/video-list.type";
 import { generateVideoThumbnail } from "../utils/thumbnail";
-import { isElectron, selectVideoFolder, renameVideoFile } from "../utils/electron";
+import { isElectron, selectVideoFolder, renameVideoFile, loadVideoFolder } from "../utils/electron";
+
+const LAST_FOLDER_KEY = "last_folder_path";
+const LAST_VIDEO_ID_KEY = "last_video_id";
 
 interface UseVideoManagementProps {
   onError: (title: string, message: string) => void;
@@ -137,6 +140,10 @@ export const useVideoManagement = ({
         // Extract folder name (cross-platform compatible)
         const folderNameExtracted = result.folderPath.split(/[\\/]/).pop() || "";
         setFolderName(folderNameExtracted);
+
+        // Persist last folder path and first video ID
+        set(LAST_FOLDER_KEY, result.folderPath).catch(() => {});
+        set(LAST_VIDEO_ID_KEY, result.videos[0].id).catch(() => {});
       } else if (result && result.videos && result.videos.length === 0) {
         onError(
           "No Videos Found",
@@ -158,6 +165,7 @@ export const useVideoManagement = ({
    */
   const handleSelectVideo = useCallback((video: VideoItem) => {
     setCurrentVideo(video);
+    set(LAST_VIDEO_ID_KEY, video.id).catch(() => {});
   }, []);
 
   /**
@@ -177,12 +185,13 @@ export const useVideoManagement = ({
       try {
         const result = await renameVideoFile(video.file, newTitle);
 
-        if (result.success) {
+        if (result.success && result.newPath) {
+          const newPath = result.newPath;
           // Update videos array immutably
           setVideos(prevVideos => 
             prevVideos.map((v) =>
               v.id === video.id
-                ? { ...v, title: newTitle, file: result.newPath }
+                ? { ...v, title: newTitle, file: newPath }
                 : v
             )
           );
@@ -190,7 +199,7 @@ export const useVideoManagement = ({
           // Update current video if it was the one renamed
           setCurrentVideo(prevCurrent => 
             prevCurrent?.id === video.id
-              ? { ...prevCurrent, title: newTitle, file: result.newPath }
+              ? { ...prevCurrent, title: newTitle, file: newPath }
               : prevCurrent
           );
 
@@ -208,6 +217,42 @@ export const useVideoManagement = ({
     },
     [onError, onSuccess] // Removed videos and currentVideo dependencies
   );
+
+  // Auto-load last folder and video on mount
+  useEffect(() => {
+    const autoLoadLastFolder = async () => {
+      if (!isElectron()) return;
+      
+      try {
+        const savedPath: string | undefined = await get(LAST_FOLDER_KEY);
+        if (!savedPath) return;
+        
+        const result = await loadVideoFolder(savedPath);
+        if (result && result.videos && result.videos.length > 0) {
+          // Reset thumbnail generation state
+          generatingThumbnailsRef.current.clear();
+          isGeneratingRef.current = false;
+
+          setVideos(result.videos);
+          setFolderPath(result.folderPath);
+          
+          const folderNameExtracted = result.folderPath.split(/[\\/]/).pop() || "";
+          setFolderName(folderNameExtracted);
+          
+          // Restore last played video if present in current video set
+          const savedVideoId: number | undefined = await get(LAST_VIDEO_ID_KEY);
+          const lastVideo = savedVideoId 
+            ? result.videos.find((v: VideoItem) => v.id === savedVideoId)
+            : null;
+          setCurrentVideo(lastVideo || result.videos[0]);
+        }
+      } catch (error) {
+        console.error("Error auto-loading last folder:", error);
+      }
+    };
+    
+    autoLoadLastFolder();
+  }, []);
 
   return {
     videos,

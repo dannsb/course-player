@@ -1,6 +1,6 @@
 export interface IVideoList {
   videos: VideoItem[];
-  currentVideo: VideoItem;
+  currentVideo: VideoItem | null;
   progress: Record<number, number>;
   folderName: string;
   onSelectVideo: (video: VideoItem) => void;
@@ -8,6 +8,8 @@ export interface IVideoList {
   onMarkAsNotStarted?: (video: VideoItem) => void;
   onRename?: (video: VideoItem, newTitle: string) => void;
   isCollapsed?: boolean;
+  totalVideos?: number;
+  completedVideos?: number;
 }
 
 export interface VideoItem {

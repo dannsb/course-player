@@ -6,7 +6,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
@@ -110,34 +110,27 @@
   --chart-3: 251 191 36;
   --chart-4: 168 85 247;
   --chart-5: 239 68 68;
-  --sidebar: hsl(0 0% 98%);
-  --sidebar-foreground: hsl(240 5.3% 26.1%);
-  --sidebar-primary: hsl(240 5.9% 10%);
-  --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(240 4.8% 95.9%);
-  --sidebar-accent-foreground: hsl(240 5.9% 10%);
-  --sidebar-border: hsl(220 13% 91%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  
+  /* HSL values converted to nearest RGB equivalents */
+  --sidebar: 250 250 250;
+  --sidebar-foreground: 63 63 70;
+  --sidebar-primary: 24 24 27;
+  --sidebar-primary-foreground: 250 250 250;
+  --sidebar-accent: 244 244 245;
+  --sidebar-accent-foreground: 24 24 27;
+  --sidebar-border: 228 231 235;
+  --sidebar-ring: 59 130 246;
 }
 
 @theme inline {
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+  --color-sidebar: rgb(var(--sidebar));
+  --color-sidebar-foreground: rgb(var(--sidebar-foreground));
+  --color-sidebar-primary: rgb(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: rgb(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: rgb(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: rgb(var(--sidebar-accent-foreground));
+  --color-sidebar-border: rgb(var(--sidebar-border));
+  --color-sidebar-ring: rgb(var(--sidebar-ring));
 }
 
 /* Video.js Sleek skin overrides to match our theme */
@@ -153,6 +146,11 @@
 
 .video-js.skin_sleek .sleek-bar .vjs-play-progress {
   background-color: rgb(var(--foreground)) !important;
+}
+
+/* Hide the fragmented load progress bar since local videos load instantly */
+.video-js.skin_sleek .sleek-bar .vjs-load-progress {
+  display: none !important;
 }
 
 .video-js.skin_sleek .sleek-bar .vjs-volume-level {
@@ -207,6 +205,3 @@
   color: rgb(var(--popover-foreground)) !important;
   border-color: rgb(var(--border)) !important;
 }
-
-
-

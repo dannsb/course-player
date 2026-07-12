@@ -137,8 +137,10 @@ export const useVideoProgress = (
       // Update the current video ID reference
       currentVideoIdRef.current = currentVideo.id;
 
-      const videoElement = document.querySelector("video");
-      if (!videoElement || !videoElement.duration) return;
+      if (!videoPlayerRef?.current) return;
+      const duration = videoPlayerRef.current.getDuration();
+      const currentTime = videoPlayerRef.current.getCurrentTime();
+      if (!duration) return;
 
       // Verify we're still on the same video (prevent race conditions)
       // Double-check folder path hasn't changed during async operations
@@ -148,9 +150,6 @@ export const useVideoProgress = (
       ) {
         return;
       }
-
-      const currentTime = videoElement.currentTime;
-      const duration = videoElement.duration;
 
       // Ignore initial timeupdate events (first 0.5 seconds)
       // This prevents capturing old video position on new video load
@@ -202,7 +201,7 @@ export const useVideoProgress = (
         return { ...prev, [currentVideo.id]: newProgress };
       });
     },
-    [folderPath] // Include folderPath in dependencies to ensure closure is updated
+    [folderPath, videoPlayerRef] // Include folderPath and videoPlayerRef in dependencies to ensure closure is updated
   );
 
   const markAsCompleted = useCallback((video: VideoItem) => {

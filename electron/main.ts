@@ -1,7 +1,14 @@
 // electron/main.ts
-const { app, BrowserWindow, ipcMain, dialog, nativeTheme } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog, nativeTheme, protocol, net } = require("electron");
 const path = require("path");
 const fs = require("fs");
+const { pathToFileURL } = require("url");
+const { Readable } = require("stream");
+
+// Register 'media' scheme as privileged before app is ready
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'media', privileges: { bypassCSP: true, stream: true, supportFetchAPI: true, corsEnabled: true } }
+]);
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -9,9 +16,10 @@ function createWindow() {
     height: 1000,
     icon: path.join(__dirname, "../public/favicon.ico"),
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-      webSecurity: false, // Allow loading local files
+      preload: path.join(__dirname, "preload.js"),
+      nodeIntegration: false,
+      contextIsolation: true,
+      webSecurity: true,
     },
   });
 
@@ -23,28 +31,62 @@ function createWindow() {
   
 }
 
-// IPC handler for renaming video files
+// Helper function for recursive file collection
+function getVideoFilesRecursively(dir: string, extensions: string[]): string[] {
+  const results: string[] = [];
+  
+  const walk = (currentDir: string) => {
+    const entries = fs.readdirSync(currentDir);
+    for (const entry of entries) {
+      const fullPath = path.join(currentDir, entry);
+      try {
+        const stat = fs.statSync(fullPath);
+        if (stat.isDirectory()) {
+          walk(fullPath);
+        } else {
+          const ext = path.extname(entry).toLowerCase();
+          if (extensions.includes(ext)) {
+            results.push(fullPath);
+          }
+        }
+      } catch {
+        // Skip files we can't access
+      }
+    }
+  };
+  
+  walk(dir);
+  return results;
+}
+
+// IPC handler for renaming video files (async & safe)
 ipcMain.handle("rename-video", async (_event: any, { oldPath, newTitle }: { oldPath: string; newTitle: string }) => {
   try {
     const dir = path.dirname(oldPath);
     const ext = path.extname(oldPath);
-    const newPath = path.join(dir, newTitle + ext);
+    
+    // Sanitize: strip path separators to prevent directory traversal
+    const safeTitle = path.basename(newTitle.replace(/[<>:"/\\|?*]/g, '_'));
+    if (!safeTitle.trim()) {
+      return { success: false, error: "Invalid file name." };
+    }
+    
+    const newPath = path.join(dir, safeTitle + ext);
 
-    // Check if the new file name already exists
-    if (fs.existsSync(newPath) && oldPath !== newPath) {
-      return {
-        success: false,
-        error: "A file with this name already exists.",
-      };
+    // Check existence asynchronously
+    if (oldPath !== newPath) {
+      try {
+        await fs.promises.access(newPath);
+        return { success: false, error: "A file with this name already exists." };
+      } catch {
+        // File doesn't exist — good
+      }
     }
 
-    // Rename the file
-    fs.renameSync(oldPath, newPath);
+    // Rename asynchronously
+    await fs.promises.rename(oldPath, newPath);
 
-    return {
-      success: true,
-      newPath: newPath,
-    };
+    return { success: true, newPath };
   } catch (error) {
     console.error("Error renaming video:", error);
     return {
@@ -68,28 +110,25 @@ ipcMain.handle("select-folder", async () => {
 
   const folderPath = result.filePaths[0];
   
-  // Read all files in the folder
   try {
-    const files = fs.readdirSync(folderPath);
-    
-    // Filter video files
-    const videoExtensions = [".mp4", ".mkv", ".avi", ".mov", ".webm", ".flv", ".m4v", "ts"];
-    const videoFiles = files.filter((file: string) => {
-      const ext = path.extname(file).toLowerCase();
-      return videoExtensions.includes(ext);
-    });    
+    const videoExtensions = [".mp4", ".mkv", ".avi", ".mov", ".webm", ".flv", ".m4v", ".ts"];
+    const videoFiles = getVideoFilesRecursively(folderPath, videoExtensions);
 
-    // Sort video files naturally (alphanumeric)
-    videoFiles.sort((a: string, b: string) => { 
-      return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+    videoFiles.sort((a: string, b: string) =>
+      a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+    );
+
+    const videos = videoFiles.map((file: string, index: number) => {
+      const relativePath = path.relative(folderPath, file);
+      const ext = path.extname(file);
+      const titleFromPath = relativePath.slice(0, -ext.length).replace(/[\\/]/g, " › ");
+      
+      return {
+        id: index + 1,
+        title: titleFromPath,
+        file: file,
+      };
     });
-
-    // Map to full paths
-    const videos = videoFiles.map((file: string, index: number) => ({
-      id: index + 1,
-      title: path.basename(file, path.extname(file)),
-      file: path.join(folderPath, file),
-    }));
 
     return {
       folderPath,
@@ -101,9 +140,133 @@ ipcMain.handle("select-folder", async () => {
   }
 });
 
+// IPC handler for loading a specific folder path (no dialog)
+ipcMain.handle("load-folder", async (_event: any, folderPath: string) => {
+  try {
+    if (!fs.existsSync(folderPath)) {
+      return null;
+    }
+    
+    const videoExtensions = [".mp4", ".mkv", ".avi", ".mov", ".webm", ".flv", ".m4v", ".ts"];
+    const videoFiles = getVideoFilesRecursively(folderPath, videoExtensions);
+
+    videoFiles.sort((a: string, b: string) =>
+      a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+    );
+
+    const videos = videoFiles.map((file: string, index: number) => {
+      const relativePath = path.relative(folderPath, file);
+      const ext = path.extname(file);
+      const titleFromPath = relativePath.slice(0, -ext.length).replace(/[\\/]/g, " › ");
+      
+      return {
+        id: index + 1,
+        title: titleFromPath,
+        file: file,
+      };
+    });
+
+    return {
+      folderPath,
+      videos,
+    };
+  } catch (error) {
+    console.error("Error loading folder:", error);
+    return null;
+  }
+});
+
 app.whenReady().then(() => {
   // Force dark mode regardless of system theme
   nativeTheme.themeSource = "dark";
+
+  // Global port for the local media HTTP server
+  let mediaServerPort = 0;
+
+  const http = require('http');
+  const mediaServer = http.createServer(async (req: any, res: any) => {
+    try {
+      const url = new URL(req.url, `http://${req.headers.host}`);
+      let filePath = url.searchParams.get('path');
+      if (!filePath) {
+        res.writeHead(400);
+        return res.end('Missing path');
+      }
+
+      const stat = await fs.promises.stat(filePath);
+      const fileSize = stat.size;
+      const rangeHeader = req.headers.range;
+
+      const ext = path.extname(filePath).toLowerCase();
+      let contentType = 'video/mp4';
+      if (ext === '.webm') contentType = 'video/webm';
+      else if (ext === '.ogg') contentType = 'video/ogg';
+      else if (ext === '.mkv') contentType = 'video/x-matroska';
+      else if (ext === '.avi') contentType = 'video/x-msvideo';
+
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Range');
+
+      if (req.method === 'OPTIONS') {
+        res.writeHead(204);
+        return res.end();
+      }
+
+      if (rangeHeader) {
+        const parts = rangeHeader.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        const chunksize = (end - start) + 1;
+        
+        res.writeHead(206, {
+          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': chunksize,
+          'Content-Type': contentType,
+        });
+        
+        const fileStream = fs.createReadStream(filePath, { start, end });
+        fileStream.pipe(res);
+        res.on('close', () => { if (!fileStream.destroyed) fileStream.destroy(); });
+      } else {
+        res.writeHead(200, {
+          'Content-Length': fileSize,
+          'Content-Type': contentType,
+          'Accept-Ranges': 'bytes',
+        });
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.pipe(res);
+        res.on('close', () => { if (!fileStream.destroyed) fileStream.destroy(); });
+      }
+    } catch (error) {
+      if (!res.headersSent) {
+        res.writeHead(404);
+      }
+      res.end('Not found');
+    }
+  });
+
+  mediaServerPort = 49213;
+  mediaServer.listen(mediaServerPort, '127.0.0.1', () => {
+    console.log('Local media HTTP server running on port:', mediaServerPort);
+  });
+
+  protocol.handle('media', (request: any) => {
+    const cleanUrl = request.url.split('?')[0].split('#')[0];
+    let filePath = decodeURIComponent(cleanUrl.slice('media://'.length));
+    if (filePath.startsWith('/')) {
+      filePath = filePath.slice(1);
+    }
+    
+    // Transparently proxy custom protocol to the robust local HTTP server using net.fetch
+    // This avoids 302 redirects which can cause HTML5 video players to momentarily reset their time state
+    const targetUrl = `http://127.0.0.1:${mediaServerPort}/?path=${encodeURIComponent(filePath)}`;
+    return net.fetch(targetUrl, {
+      method: request.method,
+      headers: request.headers,
+    });
+  });
+
   createWindow();
 });
 

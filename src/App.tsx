@@ -84,6 +84,7 @@ function AppContent() {
   const currentVideoIndex = currentVideo ? videos.findIndex(v => v.id === currentVideo.id) : -1;
   const hasPrev = currentVideoIndex > 0;
   const hasNext = currentVideoIndex >= 0 && currentVideoIndex < videos.length - 1;
+  const completedCount = videos.filter(v => (progress[v.id] || 0) >= 99.5).length;
 
   const handlePrev = useCallback(() => {
     if (hasPrev && currentVideoIndex > 0) {
@@ -120,7 +121,7 @@ function AppContent() {
         >
           <VideoList
             videos={videos}
-            currentVideo={currentVideo!}
+            currentVideo={currentVideo}
             progress={progress}
             onSelectVideo={handleSelectVideo}
             folderName={folderName}
@@ -128,6 +129,8 @@ function AppContent() {
             onMarkAsNotStarted={markAsNotStarted}
             onRename={handleRename}
             isCollapsed={state === "collapsed"}
+            totalVideos={videos.length}
+            completedVideos={completedCount}
           />
           {state === "expanded" && (
             <div className="bg-secondary/50 border-r border-border">
