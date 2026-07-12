@@ -7,9 +7,11 @@ import { isElectron, selectVideoFolder, renameVideoFile, loadVideoFolder } from 
 const LAST_FOLDER_KEY = "last_folder_path";
 const LAST_VIDEO_ID_KEY = "last_video_id";
 
-interface UseVideoManagementProps {
+export interface UseVideoManagementProps {
   onError: (title: string, message: string) => void;
   onSuccess: (title: string, message: string) => void;
+  loadThumbnails: boolean;
+  saveLastFolder: boolean;
 }
 
 /**
@@ -18,6 +20,8 @@ interface UseVideoManagementProps {
 export const useVideoManagement = ({
   onError,
   onSuccess,
+  loadThumbnails,
+  saveLastFolder,
 }: UseVideoManagementProps) => {
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [currentVideo, setCurrentVideo] = useState<VideoItem | null>(null);
@@ -35,6 +39,8 @@ export const useVideoManagement = ({
    * OPTIMIZED: Only runs when videos array changes AND has videos without thumbnails
    */
   useEffect(() => {
+    if (!loadThumbnails) return;
+
     // Prevent multiple simultaneous thumbnail generation runs
     if (isGeneratingRef.current) return;
     
@@ -110,7 +116,7 @@ export const useVideoManagement = ({
     };
 
     generateThumbnails();
-  }, [videos]); // Only depends on videos
+  }, [videos, loadThumbnails]); // Re-run if videos or thumbnail preference changes
 
   /**
    * Select a folder containing videos
@@ -222,6 +228,7 @@ export const useVideoManagement = ({
   useEffect(() => {
     const autoLoadLastFolder = async () => {
       if (!isElectron()) return;
+      if (!saveLastFolder) return;
       
       try {
         const savedPath: string | undefined = await get(LAST_FOLDER_KEY);
@@ -252,7 +259,7 @@ export const useVideoManagement = ({
     };
     
     autoLoadLastFolder();
-  }, []);
+  }, [saveLastFolder]);
 
   return {
     videos,

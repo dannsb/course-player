@@ -65,20 +65,20 @@ const VideoCard: FC<IVideoCard> = ({
             `}
           >
             <CardContent className="p-0 min-h-[240px]">
-              {/* Video Thumbnail */}
-              {video.thumbnail && (
-                <div className="relative w-full aspect-video overflow-hidden rounded-t-lg ">
+              {/* Video Thumbnail or Placeholder */}
+              <div className="relative w-full aspect-video overflow-hidden rounded-t-lg bg-secondary/90 flex flex-col items-center justify-center">
+                {video.thumbnail &&(
                   <img
                     src={video.thumbnail}
                     alt={video.title}
-                    className="w-full h-full object-cover "
+                    className="w-full h-full object-cover"
                   />
-                  {/* Play overlay indicator */}
-                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity">
-                    <PlayCircle className="w-8 h-8 text-white" />
-                  </div>
+                ) }
+                {/* Play overlay indicator */}
+                <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 group-hover:opacity-100 transition-opacity">
+                  <PlayCircle className="w-10 h-10 text-white" />
                 </div>
-              )}
+              </div>
               
               <div className="p-3 space-y-4">
                 <div className="flex items-start justify-between gap-2 mb-2">

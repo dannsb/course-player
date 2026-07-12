@@ -1,6 +1,6 @@
 "use strict";
 // electron/main.ts
-const { app, BrowserWindow, ipcMain, dialog, nativeTheme, protocol, net } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog, nativeTheme, protocol, net, Menu } = require("electron");
 const path = require("path");
 const fs = require("fs");
 const { pathToFileURL } = require("url");
@@ -9,8 +9,9 @@ const { Readable } = require("stream");
 protocol.registerSchemesAsPrivileged([
     { scheme: 'media', privileges: { bypassCSP: true, stream: true, supportFetchAPI: true, corsEnabled: true } }
 ]);
+let mainWindow = null;
 function createWindow() {
-    const win = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         width: 1600,
         height: 1000,
         icon: path.join(__dirname, "../public/favicon.ico"),
@@ -22,12 +23,141 @@ function createWindow() {
         },
     });
     if (process.env.NODE_ENV === "development") {
-        win.loadURL("http://localhost:3000");
+        mainWindow.loadURL("http://localhost:3000");
     }
     else {
-        win.loadFile(path.join(__dirname, "../build/index.html"));
+        mainWindow.loadFile(path.join(__dirname, "../build/index.html"));
     }
+    setupMenu({ autoNext: true, loadThumbnails: true });
 }
+function setupMenu(prefs) {
+    const isMac = process.platform === 'darwin';
+    const template = [
+        ...(isMac
+            ? [{
+                    label: app.name,
+                    submenu: [
+                        { role: 'about' },
+                        { type: 'separator' },
+                        { role: 'services' },
+                        { type: 'separator' },
+                        { role: 'hide' },
+                        { role: 'hideOthers' },
+                        { role: 'unhide' },
+                        { type: 'separator' },
+                        { role: 'quit' }
+                    ]
+                }]
+            : []),
+        {
+            label: 'File',
+            submenu: [
+                isMac ? { role: 'close' } : { role: 'quit' }
+            ]
+        },
+        {
+            label: 'Edit',
+            submenu: [
+                { role: 'undo' },
+                { role: 'redo' },
+                { type: 'separator' },
+                { role: 'cut' },
+                { role: 'copy' },
+                { role: 'paste' },
+                ...(isMac
+                    ? [
+                        { role: 'pasteAndMatchStyle' },
+                        { role: 'delete' },
+                        { role: 'selectAll' },
+                        { type: 'separator' },
+                        {
+                            label: 'Speech',
+                            submenu: [
+                                { role: 'startSpeaking' },
+                                { role: 'stopSpeaking' }
+                            ]
+                        }
+                    ]
+                    : [
+                        { role: 'delete' },
+                        { type: 'separator' },
+                        { role: 'selectAll' }
+                    ])
+            ]
+        },
+        {
+            label: 'Preferences',
+            submenu: [
+                {
+                    label: 'Auto Next Video',
+                    type: 'checkbox',
+                    checked: prefs.autoNext,
+                    click: (menuItem) => {
+                        if (mainWindow) {
+                            mainWindow.webContents.send('toggle-preference', 'autoNext', menuItem.checked);
+                        }
+                    }
+                },
+                {
+                    label: 'Load Thumbnails',
+                    type: 'checkbox',
+                    checked: prefs.loadThumbnails,
+                    click: (menuItem) => {
+                        if (mainWindow) {
+                            mainWindow.webContents.send('toggle-preference', 'loadThumbnails', menuItem.checked);
+                        }
+                    }
+                },
+                {
+                    label: 'Save Last Folder',
+                    type: 'checkbox',
+                    checked: prefs.saveLastFolder,
+                    click: (menuItem) => {
+                        if (mainWindow) {
+                            mainWindow.webContents.send('toggle-preference', 'saveLastFolder', menuItem.checked);
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            label: 'View',
+            submenu: [
+                { role: 'reload' },
+                { role: 'forceReload' },
+                { role: 'toggleDevTools' },
+                { type: 'separator' },
+                { role: 'resetZoom' },
+                { role: 'zoomIn' },
+                { role: 'zoomOut' },
+                { type: 'separator' },
+                { role: 'togglefullscreen' }
+            ]
+        },
+        {
+            label: 'Window',
+            submenu: [
+                { role: 'minimize' },
+                { role: 'zoom' },
+                ...(isMac
+                    ? [
+                        { type: 'separator' },
+                        { role: 'front' },
+                        { type: 'separator' },
+                        { role: 'window' }
+                    ]
+                    : [
+                        { role: 'close' }
+                    ])
+            ]
+        }
+    ];
+    const menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
+}
+ipcMain.on('sync-preferences', (event, prefs) => {
+    setupMenu(prefs);
+});
 // Helper function for recursive file collection
 function getVideoFilesRecursively(dir, extensions) {
     const results = [];

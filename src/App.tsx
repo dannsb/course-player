@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import VideoPlayer, {
   VideoPlayerRef,
 } from "./components/video-player/video-player";
@@ -14,6 +14,7 @@ import { useDialog } from "./hooks/useDialog";
 import { useVideoProgress } from "./hooks/useVideoProgress";
 import { useVideoManagement } from "./hooks/useVideoManagement";
 import { useContinueToast } from "./hooks/useContinueToast";
+import { usePreferences } from "./hooks/usePreferences";
 import {
   SidebarProvider,
   useSidebar,
@@ -22,6 +23,8 @@ import {
 
 function AppContent() {
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
+
+  const { preferences, updatePreference } = usePreferences();
 
   const { isOpen, content, showDialog, setIsOpen } = useDialog();
 
@@ -38,6 +41,8 @@ function AppContent() {
   } = useVideoManagement({
     onError: showDialog,
     onSuccess: showDialog,
+    loadThumbnails: preferences.loadThumbnails,
+    saveLastFolder: preferences.saveLastFolder,
   });
 
   // Video progress tracking
@@ -73,12 +78,25 @@ function AppContent() {
     }
   }, [currentVideo, updateNote]);
 
-  // Memoize the onEnded handler to mark video as completed when it finishes
-  const onEndedHandler = useCallback(() => {
-    if (currentVideo) {
-      markAsCompleted(currentVideo);
+
+  useEffect(() => {
+    if (window.electronAPI && window.electronAPI.syncPreferences) {
+      window.electronAPI.syncPreferences(preferences);
     }
-  }, [currentVideo, markAsCompleted]);
+  }, [preferences]);
+
+  useEffect(() => {
+    if (window.electronAPI && window.electronAPI.onTogglePreference) {
+      window.electronAPI.onTogglePreference((key, value) => {
+        updatePreference(key as any, value);
+      });
+    }
+    return () => {
+      if (window.electronAPI && window.electronAPI.removeTogglePreference) {
+        window.electronAPI.removeTogglePreference();
+      }
+    };
+  }, [updatePreference]);
 
   // Calculate current video index and navigation handlers
   const currentVideoIndex = currentVideo ? videos.findIndex(v => v.id === currentVideo.id) : -1;
@@ -97,6 +115,16 @@ function AppContent() {
       handleSelectVideo(videos[currentVideoIndex + 1]);
     }
   }, [hasNext, currentVideoIndex, videos, handleSelectVideo]);
+
+  // Memoize the onEnded handler to mark video as completed when it finishes
+  const onEndedHandler = useCallback(() => {
+    if (currentVideo) {
+      markAsCompleted(currentVideo);
+      if (preferences.autoNext) {
+        handleNext();
+      }
+    }
+  }, [currentVideo, markAsCompleted, preferences.autoNext, handleNext]);
 
   // Show folder import screen if no videos
   if (videos.length === 0) {

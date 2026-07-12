@@ -2,6 +2,9 @@ export interface ElectronAPI {
   selectFolder: () => Promise<{ folderPath: string; videos: any[] } | null>;
   renameVideo: (oldPath: string, newTitle: string) => Promise<{ success: boolean; newPath?: string; error?: string }>;
   loadFolder: (folderPath: string) => Promise<{ folderPath: string; videos: any[] } | null>;
+  syncPreferences: (prefs: any) => void;
+  onTogglePreference: (callback: (key: string, value: boolean) => void) => void;
+  removeTogglePreference: () => void;
 }
 
 declare global {
